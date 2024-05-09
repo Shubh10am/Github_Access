@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./styles.css"; // Import CSS file for styling
 
@@ -10,6 +10,16 @@ const UserProfile = () => {
   const [repos, setRepos] = useState([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
   const [errorRepos, setErrorRepos] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const reposPerPage = 6;
+  const indexOfLastRepo = currentPage * reposPerPage;
+  const indexOfFirstRepo = indexOfLastRepo - reposPerPage;
+  const currentRepos = repos.slice(indexOfFirstRepo, indexOfLastRepo);
+
+  const handlePagination = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,7 +83,7 @@ const UserProfile = () => {
       {loadingRepos && <div>Loading repositories...</div>}
       {errorRepos && <div>{errorRepos}</div>}
       <div className="repo-container">
-        {repos.map((repo) => (
+        {currentRepos.map((repo) => (
           <div className="repo-tile" key={repo.id}>
             <h3>{repo.name}</h3>
             <p>{repo.description}</p>
@@ -85,6 +95,19 @@ const UserProfile = () => {
             </a>
           </div>
         ))}
+      </div>
+      <div className="pagination">
+        {Array.from({ length: Math.ceil(repos.length / reposPerPage) }).map(
+          (_, index) => (
+            <button
+              key={index}
+              onClick={() => handlePagination(index + 1)}
+              className={currentPage === index + 1 ? "active" : ""}
+            >
+              {index + 1}
+            </button>
+          )
+        )}
       </div>
     </div>
   );
