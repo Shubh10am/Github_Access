@@ -29,13 +29,26 @@ const UserProfile = () => {
       setLoadingRepos(true);
       setErrorRepos(null);
 
-      const [userData, repoData] = await Promise.all([
-        axios.get(`https://api.github.com/users/${username}`),
-        axios.get(`https://api.github.com/users/${username}/repos`),
-      ]);
-
+      const userData = await axios.get(
+        `https://api.github.com/users/${username}`
+      );
       setUser(userData.data);
-      setRepos(repoData.data);
+
+      let allRepos = [];
+      let page = 1;
+      let reposResponse;
+      do {
+        reposResponse = await axios.get(
+          `https://api.github.com/users/${username}/repos`,
+          {
+            params: { per_page: 100, page: page },
+          }
+        );
+        allRepos = [...allRepos, ...reposResponse.data];
+        page++;
+      } while (reposResponse.data.length === 100);
+
+      setRepos(allRepos);
       setLoadingUser(false);
       setLoadingRepos(false);
     } catch (error) {
@@ -100,7 +113,7 @@ const UserProfile = () => {
         {Array.from({ length: Math.ceil(repos.length / reposPerPage) }).map(
           (_, index) => (
             <button
-              key={index}
+              key={index + 1}
               onClick={() => handlePagination(index + 1)}
               className={currentPage === index + 1 ? "active" : ""}
             >
